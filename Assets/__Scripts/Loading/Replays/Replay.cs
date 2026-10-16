@@ -53,6 +53,7 @@ public class ReplayInfo
     public string difficulty;
 
     public int score;
+    public bool isRoboSaber;
     public string mode;
     public string environment;
     public string modifiers;

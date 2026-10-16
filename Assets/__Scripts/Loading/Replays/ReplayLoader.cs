@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using System.IO;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -30,6 +31,19 @@ public class ReplayLoader
 
     public static Replay DecodeReplayBytes(byte[] data)
     {
+        // Robo-Saber exports UTF-8 pose JSON, not BeatLeader .bsor.
+        // Detect JSON before the BSOR header probe (which reads binary fields).
+        if(data != null && data.Length > 0)
+        {
+            string prefix = Encoding.UTF8.GetString(data, 0, Math.Min(data.Length, 256))
+                .TrimStart('\uFEFF', ' ', '\t', '\r', '\n');
+            if(prefix.StartsWith("{", StringComparison.Ordinal))
+            {
+                Debug.Log("Detected Robo-Saber JSON replay format.");
+                return RoboSaberReplayDecoder.Decode(data);
+            }
+        }
+
         if(BsorDecoder.IsBsorV1Replay(data))
         {
             Debug.Log("Detected BsorV1 replay format.");

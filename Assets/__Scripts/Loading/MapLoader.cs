@@ -335,13 +335,22 @@ public class MapLoader : MonoBehaviour
     {
         ReplaySourceInfo sourceInfo = ReplayManager.SourceInfo;
 
-        sourceInfo?.ApplyTo(replay);
-
-        //Default to beatleader source for replays loaded without an API flow
-        if(sourceInfo == null)
+        // Generated JSON contains no BeatLeader account ID or online score.
+        // Do not make profile/leaderboard requests for a synthetic replay.
+        if(replay.info.isRoboSaber)
         {
-            sourceInfo = ReplaySources.BeatLeader.CreateInfo();
+            sourceInfo = new ReplaySourceInfo { SourceType = ReplaySourceType.Unknown };
             ReplayManager.SourceInfo = sourceInfo;
+        }
+        else
+        {
+            sourceInfo?.ApplyTo(replay);
+            //Default to beatleader source for ordinary local replays
+            if(sourceInfo == null)
+            {
+                sourceInfo = ReplaySources.BeatLeader.CreateInfo();
+                ReplayManager.SourceInfo = sourceInfo;
+            }
         }
 
         ReplayManager.SetReplay(replay);
@@ -962,7 +971,8 @@ public class MapLoader : MonoBehaviour
                 return;
             }
 
-            if(directory.EndsWith(".bsor", StringComparison.InvariantCultureIgnoreCase))
+            if(directory.EndsWith(".bsor", StringComparison.InvariantCultureIgnoreCase)
+                || directory.EndsWith(".json", StringComparison.InvariantCultureIgnoreCase))
             {
                 ResetPendingReplay();
                 _ = LoadReplayDirectoryAsync(directory, null, BeginLoading());
@@ -1050,7 +1060,8 @@ public class MapLoader : MonoBehaviour
                 return;
             }
 
-            if(noQuery.EndsWith(".bsor", StringComparison.InvariantCultureIgnoreCase))
+            if(noQuery.EndsWith(".bsor", StringComparison.InvariantCultureIgnoreCase)
+                || noQuery.EndsWith(".json", StringComparison.InvariantCultureIgnoreCase))
             {
                 LoadReplayURL(decodedURL);
                 UrlArgHandler.LoadedReplayURL = decodedURL;

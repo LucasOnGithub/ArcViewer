@@ -36,7 +36,7 @@ public class ExplorerManager : MonoBehaviour, IPointerDownHandler
 #if UNITY_WEBGL && !UNITY_EDITOR
         if(!ReplayManager.IsReplayMode && SettingsManager.GetInt("replaymode") > 0)
         {
-            UploadFile(gameObject.name, "OnReplayUploaded", ".bsor,.dat", false);
+            UploadFile(gameObject.name, "OnReplayUploaded", ".bsor,.dat,.json", false);
         }
         else
         {
@@ -54,14 +54,15 @@ public class ExplorerManager : MonoBehaviour, IPointerDownHandler
         {
             extensions = new []
             {
-                new ExtensionFilter("Replay Files", new string[] {"bsor", "dat"})
+                new ExtensionFilter("Replay Files", new string[] {"bsor", "dat", "json"})
             };
         }
         else
         {
             extensions = new []
             {
-                new ExtensionFilter("Map Files", new string[] {"zip", "dat"})
+                new ExtensionFilter("Map Files", new string[] {"zip", "dat"}),
+                new ExtensionFilter("Robo-Saber Replays", new string[] {"json"})
             };
         }
 

@@ -607,7 +607,7 @@ public class ScoreManager : MonoBehaviour
     {
         if(replayMode)
         {
-            bool showHud = SettingsManager.GetBool("showhud");
+            bool showHud = SettingsManager.GetBool("showhud") && !ReplayManager.CurrentReplay.info.isRoboSaber;
             ScoringEvents.Clear();
             hudObject.SetActive(showHud);
 
@@ -669,7 +669,8 @@ public class ScoreManager : MonoBehaviour
             currentColorSettings = colorSettings[colorSettingsIndex];
         }
 
-        if(ReplayManager.IsReplayMode && SettingsManager.GetBool("showhud"))
+        if(ReplayManager.IsReplayMode && SettingsManager.GetBool("showhud")
+            && !(ReplayManager.CurrentReplay?.info?.isRoboSaber ?? false))
         {
             ClearIndicators();
             UpdateBeat(TimeManager.CurrentBeat);
@@ -692,7 +693,8 @@ public class ScoreManager : MonoBehaviour
         if(allSettings || setting == "showhud")
         {
             bool showHud = SettingsManager.GetBool("showhud");
-            bool shouldEnable = ReplayManager.IsReplayMode && showHud;
+            bool shouldEnable = ReplayManager.IsReplayMode && showHud
+                && !(ReplayManager.CurrentReplay?.info?.isRoboSaber ?? false);
 
             hudObject.gameObject.SetActive(shouldEnable);
             if(shouldEnable)
