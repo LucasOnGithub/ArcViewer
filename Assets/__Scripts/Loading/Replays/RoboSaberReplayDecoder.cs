@@ -44,7 +44,9 @@ public static class RoboSaberReplayDecoder
         // Z-up xyzw -> Unity xyzw: (y, -z, -x, w)
         Vector3 position = new Vector3(-pose[1], pose[2], pose[0]);
         Quaternion rotation = new Quaternion(pose[4], -pose[5], -pose[3], pose[6]);
-        if(rotation.sqrMagnitude < 0.000001f)
+        float magnitudeSquared = rotation.x * rotation.x + rotation.y * rotation.y
+            + rotation.z * rotation.z + rotation.w * rotation.w;
+        if(magnitudeSquared < 0.000001f)
         {
             throw new FormatException($"Robo-Saber frame {frameIndex} has a zero {label} quaternion.");
         }
