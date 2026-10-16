@@ -66,6 +66,17 @@ jobs:
           test -d pages-site/Build
           echo "Prepared WebGL Pages site from $(dirname "$site_index")"
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Normalize Unity WebGL compression
+        run: |
+          python -m pip install --quiet brotli==1.1.0
+          python -m unittest discover -s scripts -p 'test_prepare_pages.py' -v
+          python scripts/prepare_pages.py pages-site
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:

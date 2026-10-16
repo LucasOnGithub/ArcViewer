@@ -52,9 +52,14 @@ score, or physics-tracked body animation are contained in Robo-Saber JSON.
 
 ## Hosting notes
 
-- WebGL build compression is disabled in `ProjectSettings/ProjectSettings.asset`
-  because GitHub Pages does not provide configurable Brotli or gzip
-  `Content-Encoding` headers for Unity's precompressed assets.
+- WebGL build compression is disabled in `ProjectSettings/ProjectSettings.asset`.
+  GitHub Pages cannot set Unity's required `Content-Encoding: br` header,
+  so the deployment also runs `scripts/prepare_pages.py` to unpack any
+  `.br`, `.gz` or `.unityweb` files produced despite that setting,
+  rewrite `index.html` references, and verify the resulting assets exist.
+  This fixes the `ArcViewer.framework.js.br` syntax error and compressed
+  `ArcViewer.data.br` loading error. Once the new Pages deployment succeeds,
+  hard-refresh your browser to discard cached old `.br` URLs.
 - The Pages upload contains the built WebGL site only; no source project,
   model weights, or generated replays are published.
 - The site may take substantial browser memory and download bandwidth.
