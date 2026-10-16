@@ -8,7 +8,8 @@ using UnityEngine;
 /// <summary>
 /// Reads the pose-only JSON exported by Robo-Saber's generate.py:
 /// { "gen3p": [[[x,y,z,qx,qy,qz,qw], ...three poses], ...], "song_hash": ..., "difficulty": ... }.
-/// The three poses are head, left hand, right hand, sampled at 60 Hz in a Z-up coordinate system.
+/// The three poses are head, left hand, right hand, sampled at 60 Hz in
+/// Unity's native Y-up coordinate system (the same as BeatLeader BSOR frames).
 /// </summary>
 public static class RoboSaberReplayDecoder
 {
@@ -39,11 +40,15 @@ public static class RoboSaberReplayDecoder
             }
         }
 
-        // Inverse of Robo-Saber's beaty_common.pose_utils.unity_to_zup:
-        // Z-up xyz -> Unity xyz: (-y, z, x)
-        // Z-up xyzw -> Unity xyzw: (y, -z, -x, w)
-        Vector3 position = new Vector3(-pose[1], pose[2], pose[0]);
-        Quaternion rotation = new Quaternion(pose[4], -pose[5], -pose[3], pose[6]);
+        // Robo-Saber models are trained on the original BeatLeader/BSOR poses:
+        // beaty_common.bsmg_xror_utils.load_3p -> extract_3p_with_60fps
+        // (x, y, z, qx, qy, qz, qw) stays in Unity/Beat Saber Y-up space.
+        // TorchSaber converts to Z-up *temporarily for collision simulation*;
+        // generate.py does not convert its exported gen3p JSON.
+        // The old code applied zup_to_unity to already-Unity poses, placing
+        // the player's ~1.5 m head height on negative X and sabers underground.
+        Vector3 position = new Vector3(pose[0], pose[1], pose[2]);
+        Quaternion rotation = new Quaternion(pose[3], pose[4], pose[5], pose[6]);
         float magnitudeSquared = rotation.x * rotation.x + rotation.y * rotation.y
             + rotation.z * rotation.z + rotation.w * rotation.w;
         if(magnitudeSquared < 0.000001f)
