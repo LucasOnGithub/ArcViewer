@@ -1,0 +1,89 @@
+name: Deploy ArcViewer to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: arcviewer-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Unity WebGL
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Check Unity activation
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          if [[ -z "$UNITY_EMAIL" || -z "$UNITY_PASSWORD" ]]; then
+            echo "::error::Set UNITY_EMAIL and UNITY_PASSWORD under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          if [[ -z "$UNITY_LICENSE" && -z "$UNITY_SERIAL" ]]; then
+            echo "::error::Set UNITY_LICENSE (Personal .ulf contents) or UNITY_SERIAL (Pro) as an Actions repository secret."
+            exit 1
+          fi
+
+      - name: Build WebGL
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: WebGL
+          unityVersion: 6000.0.67f1
+          buildName: ArcViewer
+
+      - name: Prepare Pages files
+        shell: bash
+        run: |
+          set -euo pipefail
+          site_index="$(find build/WebGL -type f -name index.html -print -quit)"
+          if [[ -z "$site_index" ]]; then
+            echo "::error::Unity did not produce a WebGL index.html under build/WebGL."
+            exit 1
+          fi
+          mkdir -p pages-site
+          cp -a "$(dirname "$site_index")/." pages-site/
+          touch pages-site/.nojekyll
+          test -f pages-site/index.html
+          test -d pages-site/Build
+          echo "Prepared WebGL Pages site from $(dirname "$site_index")"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: pages-site
+
+  deploy:
+    name: Publish GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

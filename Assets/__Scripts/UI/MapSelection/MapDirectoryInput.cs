@@ -182,7 +182,7 @@ public class MapDirectoryInput : MonoBehaviour
             return;
         }
 
-        if(MapDirectory.StartsWith(UrlArgHandler.ArcViewerURL))
+        if(MapDirectory.StartsWith(UrlArgHandler.ArcViewerURL) || MapDirectory.StartsWith(UrlArgHandler.OriginalArcViewerURL))
         {
             //Input a shared link
             urlArgHandler.LoadMapFromShareableURL(MapDirectory);
